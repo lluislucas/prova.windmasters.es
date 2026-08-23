@@ -42,6 +42,7 @@ RUN apt-get update \
     && setcap "cap_net_bind_service=+ep" /usr/local/bin/php \
     && groupadd --force -g "$WWWGROUP" sail \
     && useradd -ms /bin/bash --no-user-group -g "$WWWGROUP" -u 1337 sail \
+    && git config --global --add safe.directory /var/www/html \
     && apt-get purge -y --auto-remove \
         libfreetype6-dev \
         libicu-dev \
