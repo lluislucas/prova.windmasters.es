@@ -17,10 +17,20 @@ services:
         labels:
             - traefik.enable=true
             - traefik.docker.network=traefik
+            # HTTP (needed for Let's Encrypt httpChallenge + redirect)
+            - traefik.http.routers.windmasters-http.rule=Host(`prova.windmasters.es`)
+            - traefik.http.routers.windmasters-http.entrypoints=web
+            - traefik.http.routers.windmasters-http.middlewares=windmasters-https-redirect
+            - traefik.http.middlewares.windmasters-https-redirect.redirectscheme.scheme=https
+            - traefik.http.middlewares.windmasters-https-redirect.redirectscheme.permanent=true
+            # HTTPS + Let's Encrypt
             - traefik.http.routers.windmasters.rule=Host(`prova.windmasters.es`)
             - traefik.http.routers.windmasters.entrypoints=websecure
-            - traefik.http.routers.windmasters.tls.certresolver=le
+            - traefik.http.routers.windmasters.tls=true
+            - traefik.http.routers.windmasters.tls.certresolver=letsencrypt
             - traefik.http.services.windmasters.loadbalancer.server.port=80
+            - traefik.http.routers.windmasters-http.service=windmasters
+            - traefik.http.routers.windmasters.service=windmasters
     mysql:
         restart: unless-stopped
         ports: !reset []
