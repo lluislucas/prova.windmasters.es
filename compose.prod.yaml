@@ -1,0 +1,22 @@
+services:
+    prova.windmasters.es:
+        restart: unless-stopped
+        ports: !reset []
+        networks:
+            - sail
+            - traefik
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik
+            - traefik.http.routers.windmasters.rule=Host(`prova.windmasters.es`)
+            - traefik.http.routers.windmasters.entrypoints=websecure
+            - traefik.http.routers.windmasters.tls.certresolver=le
+            - traefik.http.services.windmasters.loadbalancer.server.port=80
+    pgsql:
+        restart: unless-stopped
+        ports: !reset []
+    scheduler:
+        restart: unless-stopped
+networks:
+    traefik:
+        external: true
