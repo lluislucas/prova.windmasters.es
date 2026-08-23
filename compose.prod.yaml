@@ -1,7 +1,16 @@
 services:
     prova.windmasters.es:
+        build: !override
+            context: './docker/prod'
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP:-1000}'
+        image: barsaopinion-app
         restart: unless-stopped
         ports: !reset []
+        depends_on: !override
+            - mysql
+            - redis
         networks:
             - sail
             - traefik
@@ -15,6 +24,9 @@ services:
     mysql:
         restart: unless-stopped
         ports: !reset []
+    mailpit:
+        profiles:
+            - donotstart
 networks:
     traefik:
         external: true
