@@ -29,6 +29,9 @@ export default defineConfig({
         }),
         wayfinder({
             formVariants: true,
+            // On servers without PHP in the Node build image, pre-run
+            // `php artisan wayfinder:generate --with-form` then set WAYFINDER_COMMAND=true
+            command: process.env.WAYFINDER_COMMAND ?? 'php artisan wayfinder:generate',
         }),
     ],
 });
