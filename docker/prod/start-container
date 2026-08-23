@@ -15,6 +15,14 @@ fi
 
 chmod -R ugo+rw /.composer
 
+# Ensure Laravel can write compiled views, cache, and logs.
+mkdir -p \
+    /var/www/html/storage/framework/{cache,sessions,views} \
+    /var/www/html/storage/logs \
+    /var/www/html/bootstrap/cache
+chown -R sail:sail /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+chmod -R ug+rwx /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+
 if [ $# -gt 0 ]; then
     if [ "$SUPERVISOR_PHP_USER" = "root" ] || [ -z "$WWWUSER" ]; then
         exec "$@"
