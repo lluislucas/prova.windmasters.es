@@ -15,10 +15,15 @@ RUN apt-get update \
         git \
         gosu \
         libcap2-bin \
+        libfreetype6 \
         libfreetype6-dev \
+        libicu72 \
         libicu-dev \
+        libjpeg62-turbo \
         libjpeg62-turbo-dev \
+        libpng16-16 \
         libpng-dev \
+        libzip4 \
         libzip-dev \
         supervisor \
         unzip \
@@ -43,6 +48,12 @@ RUN apt-get update \
         libjpeg62-turbo-dev \
         libpng-dev \
         libzip-dev \
+    && apt-get install -y --no-install-recommends \
+        libfreetype6 \
+        libicu72 \
+        libjpeg62-turbo \
+        libpng16-16 \
+        libzip4 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
