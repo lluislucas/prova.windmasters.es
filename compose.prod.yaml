@@ -12,11 +12,9 @@ services:
             - traefik.http.routers.windmasters.entrypoints=websecure
             - traefik.http.routers.windmasters.tls.certresolver=le
             - traefik.http.services.windmasters.loadbalancer.server.port=80
-    pgsql:
+    mysql:
         restart: unless-stopped
         ports: !reset []
-    scheduler:
-        restart: unless-stopped
 networks:
     traefik:
         external: true
