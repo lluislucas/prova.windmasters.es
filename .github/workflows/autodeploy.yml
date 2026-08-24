@@ -1,0 +1,39 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            cd prova.windmasters.es
+            git pull origin main
+            docker compose -f compose.yaml -f compose.prod.yaml up -d --build
+
+            # 1) Generar rutas Wayfinder (contenedor PHP)
+            docker compose -f compose.yaml -f compose.prod.yaml exec -T prova.windmasters.es \
+              php artisan wayfinder:generate --with-form
+
+            # 2) Build frontend (contenedor Node, sin llamar a php)
+            docker run --rm -e WAYFINDER_COMMAND=true -v "$(pwd):/app" -w /app node:24-bookworm \
+              bash -c "npm ci && npm run build"
+
+
+
+
+
+
+
+
+
