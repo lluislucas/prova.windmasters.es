@@ -17,6 +17,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
+            set -e
             cd prova.windmasters.es
             git pull origin main
             docker compose -f compose.yaml -f compose.prod.yaml up -d --build
@@ -28,6 +29,16 @@ jobs:
             # 2) Build frontend (contenedor Node, sin llamar a php)
             docker run --rm -e WAYFINDER_COMMAND=true -v "$(pwd):/app" -w /app node:24-bookworm \
               bash -c "npm ci && npm run build"
+
+            # 3) Evitar que logs enormes omplin el disc de 10G
+            docker compose -f compose.yaml -f compose.prod.yaml exec -T prova.windmasters.es \
+              sh -lc 'find storage/logs -type f -name "*.log" -size +20M -exec truncate -s 0 {} +; true'
+
+            # 4) Alliberar imatges i cache de build. No toca volums (MySQL/Redis).
+            docker builder prune -af
+            docker image prune -f
+            docker image prune -af --filter "until=72h"
+            df -h /
 
 
 

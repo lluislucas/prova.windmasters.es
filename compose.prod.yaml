@@ -11,6 +11,13 @@ services:
         depends_on: !override
             - mysql
             - redis
+        environment:
+            LOG_STACK: daily
+            LOG_DAILY_DAYS: '7'
+            LOG_LEVEL: warning
+            LOG_STACK_IGNORE_EXCEPTIONS: 'true'
+            SESSION_DRIVER: redis
+            REDIS_HOST: redis
         networks:
             - sail
             - traefik
@@ -32,6 +39,9 @@ services:
             - traefik.http.routers.windmasters-http.service=windmasters
             - traefik.http.routers.windmasters.service=windmasters
     mysql:
+        restart: unless-stopped
+        ports: !reset []
+    redis:
         restart: unless-stopped
         ports: !reset []
     mailpit:

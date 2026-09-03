@@ -55,7 +55,7 @@ return [
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
-            'ignore_exceptions' => false,
+            'ignore_exceptions' => filter_var(env('LOG_STACK_IGNORE_EXCEPTIONS', false), FILTER_VALIDATE_BOOLEAN),
         ],
 
         'single' => [
