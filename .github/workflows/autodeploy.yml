@@ -19,32 +19,35 @@ jobs:
           script: |
             set -e
             cd prova.windmasters.es
+
+            BEFORE="$(git rev-parse HEAD)"
             git pull origin main
-            docker compose -f compose.yaml -f compose.prod.yaml up -d --build
+            AFTER="$(git rev-parse HEAD)"
+            CHANGED="$(git diff --name-only "$BEFORE" "$AFTER" || true)"
 
-            # 1) Generar rutas Wayfinder (contenedor PHP)
-            docker compose -f compose.yaml -f compose.prod.yaml exec -T prova.windmasters.es \
-              php artisan wayfinder:generate --with-form
+            COMPOSE="docker compose -f compose.yaml -f compose.prod.yaml"
 
-            # 2) Build frontend (contenedor Node, sin llamar a php)
-            docker run --rm -e WAYFINDER_COMMAND=true -v "$(pwd):/app" -w /app node:24-bookworm \
-              bash -c "npm ci && npm run build"
+            # El codi va muntat al contenidor; només cal reconstruir la imatge
+            # PHP si canvia Docker (si no, --build recompila intl/gd cada cop).
+            if echo "$CHANGED" | grep -Eq '^(docker/|compose\.yaml|compose\.prod\.yaml)'; then
+              $COMPOSE up -d --build
+            else
+              $COMPOSE up -d
+            fi
 
-            # 3) Evitar que logs enormes omplin el disc de 10G
-            docker compose -f compose.yaml -f compose.prod.yaml exec -T prova.windmasters.es \
+            $COMPOSE exec -T prova.windmasters.es php artisan wayfinder:generate --with-form
+
+            if [ ! -d node_modules ] || echo "$CHANGED" | grep -Eq '^(package\.json|package-lock\.json)'; then
+              docker run --rm -e WAYFINDER_COMMAND=true -v "$(pwd):/app" -w /app node:24-bookworm \
+                bash -c "npm ci && npm run build"
+            else
+              docker run --rm -e WAYFINDER_COMMAND=true -v "$(pwd):/app" -w /app node:24-bookworm \
+                bash -c "npm run build"
+            fi
+
+            $COMPOSE exec -T prova.windmasters.es \
               sh -lc 'find storage/logs -type f -name "*.log" -size +20M -exec truncate -s 0 {} +; true'
 
-            # 4) Alliberar imatges i cache de build. No toca volums (MySQL/Redis).
-            docker builder prune -af
+            # Només imatges penjades. No esborrar la cache de build (força recompilar PHP).
             docker image prune -f
-            docker image prune -af --filter "until=72h"
             df -h /
-
-
-
-
-
-
-
-
-
